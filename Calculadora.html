@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Calculadora</title>
+
+<style>
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+
+body{
+margin:0;min-height:100vh;padding:20px;
+display:flex;justify-content:center;align-items:center;
+font-family:Arial,sans-serif;color:white;
+background:
+radial-gradient(circle at 10% 10%,rgba(120,0,255,.25),transparent 30%),
+radial-gradient(circle at 90% 90%,rgba(170,0,255,.2),transparent 30%),#05060d
+}
+
+.calculadora{
+width:100%;max-width:380px;padding:20px;
+border-radius:30px;background:rgba(8,10,22,.94);
+border:2px solid #8a2be2;
+box-shadow:0 0 15px rgba(138,43,226,.5),0 0 50px rgba(138,43,226,.25)
+}
+
+.pantalla{
+height:150px;padding:20px;margin-bottom:15px;
+border-radius:22px;
+background:linear-gradient(145deg,rgba(35,38,65,.95),rgba(3,5,15,.98));
+border:1px solid rgba(130,70,255,.7);
+box-shadow:inset 0 0 20px rgba(0,0,0,.7),0 0 15px rgba(90,30,255,.15);
+display:flex;flex-direction:column;justify-content:flex-end;
+overflow:hidden
+}
+
+#expr{
+color:#999fc4;font-size:18px;text-align:right;
+min-height:25px;overflow-x:auto;white-space:nowrap
+}
+
+#display{
+color:white;font-size:44px;font-weight:bold;text-align:right;
+margin-top:5px;overflow-x:auto;white-space:nowrap
+}
+
+#display.error{
+color:#ff3030;
+text-shadow:0 0 8px rgba(255,0,0,.7),0 0 20px rgba(255,0,0,.4)
+}
+
+.botones{
+display:grid;grid-template-columns:repeat(4,1fr);gap:10px
+}
+
+button{
+height:68px;border:0;border-radius:18px;color:white;
+font-size:21px;font-weight:bold;cursor:pointer;
+background:linear-gradient(145deg,#20263c,#0d1120);
+box-shadow:0 5px 10px rgba(0,0,0,.45),inset 0 1px 1px rgba(255,255,255,.08)
+}
+
+button:active{transform:scale(.94)}
+
+.op{
+background:linear-gradient(145deg,#9b20ff,#4d00b8);
+box-shadow:0 0 12px rgba(140,0,255,.35)
+}
+
+.clear{
+grid-column:span 2;
+background:linear-gradient(145deg,#ff35c8,#8b00e8)
+}
+
+.igual{
+background:linear-gradient(145deg,#b52cff,#5700d4);
+box-shadow:0 0 18px rgba(150,0,255,.55)
+}
+
+.cero{grid-column:span 2}
+
+.back{
+background:linear-gradient(145deg,#30384f,#121728)
+}
+
+.historial-btn{
+width:100%;height:48px;margin-bottom:12px;
+background:linear-gradient(145deg,#242044,#120d29);
+border:1px solid #8a2be2;
+font-size:16px
+}
+
+.calculadora.error-mode{
+border-color:#ff3030;
+box-shadow:0 0 15px rgba(255,0,0,.5),0 0 40px rgba(255,0,0,.2)
+}
+
+/* HISTORIAL */
+
+.historial{
+display:none;
+position:fixed;
+inset:0;
+background:rgba(3,4,10,.96);
+z-index:10;
+padding:20px;
+overflow-y:auto
+}
+
+.historial-contenido{
+width:100%;max-width:420px;margin:auto
+}
+
+.historial h2{
+text-align:center;
+margin:5px 0 18px;
+color:#c66cff;
+text-shadow:0 0 12px #8a2be2
+}
+
+.historial-item{
+background:linear-gradient(145deg,#171a2c,#0b0d18);
+border:1px solid #5d2b91;
+border-radius:15px;
+padding:14px;
+margin-bottom:10px;
+box-shadow:0 0 10px rgba(138,43,226,.15)
+}
+
+.historial-cuenta{
+font-size:19px;font-weight:bold
+}
+
+.historial-resultado{
+color:#c66cff;font-size:22px;font-weight:bold;
+margin-top:5px
+}
+
+.historial-fecha{
+color:#9296ad;font-size:13px;margin-top:7px
+}
+
+.historial-botones{
+display:flex;gap:10px;margin-top:15px
+}
+
+.historial-botones button{
+height:50px;flex:1;font-size:15px
+}
+
+.cerrar{
+background:linear-gradient(145deg,#30384f,#121728)
+}
+
+.borrar{
+background:linear-gradient(145deg,#ff3030,#8b0000)
+}
+
+.vacio{
+text-align:center;color:#777c94;margin-top:50px
+}
+
+@media(max-width:360px){
+.calculadora{padding:15px}
+.pantalla{height:130px}
+button{height:60px;font-size:19px}
+#display{font-size:38px}
+}
+</style>
+</head>
+
+<body>
+
+<div class="calculadora" id="calculadora">
+
+<button class="historial-btn" id="historyBtn">
+HISTORIAL
+</button>
+
+<div class="pantalla">
+<div id="expr">&nbsp;</div>
+<div id="display">0</div>
+</div>
+
+<div class="botones">
+
+<button class="clear" data-key="C">C</button>
+<button class="back" data-key="back">←</button>
+<button class="op" data-key="/">÷</button>
+
+<button data-key="7">7</button>
+<button data-key="8">8</button>
+<button data-key="9">9</button>
+<button class="op" data-key="*">×</button>
+
+<button data-key="4">4</button>
+<button data-key="5">5</button>
+<button data-key="6">6</button>
+<button class="op" data-key="-">−</button>
+
+<button data-key="1">1</button>
+<button data-key="2">2</button>
+<button data-key="3">3</button>
+<button class="op" data-key="+">+</button>
+
+<button class="cero" data-key="0">0</button>
+<button data-key=".">,</button>
+<button class="igual" data-key="=">=</button>
+
+</div>
+</div>
+
+<!-- VENTANA DEL HISTORIAL -->
+
+<div class="historial" id="historyPanel">
+
+<div class="historial-contenido">
+
+<h2>HISTORIAL</h2>
+
+<div id="historyList"></div>
+
+<div class="historial-botones">
+<button class="cerrar" id="closeHistory">Cerrar</button>
+<button class="borrar" id="clearHistory">Borrar todo</button>
+</div>
+
+</div>
+</div>
+
+<script>
+
+let current="0";
+let previous=null;
+let operator=null;
+let justEvaluated=false;
+
+const display=document.getElementById("display");
+const exprEl=document.getElementById("expr");
+const calculadora=document.getElementById("calculadora");
+
+let history=JSON.parse(localStorage.getItem("calcHistory")||"[]");
+
+function opSymbol(op){
+return{"+":"+","-":"−","*":"×","/":"÷"}[op]||""
+}
+
+function formatNumber(numStr){
+
+if(numStr==="Error")return numStr;
+
+const negative=numStr.startsWith("-");
+const clean=negative?numStr.slice(1):numStr;
+const parts=clean.split(".");
+
+let intPart=parts[0].replace(
+ /\B(?=(\d{3})+(?!\d))/g,"."
+);
+
+if(intPart==="")intPart="0";
+
+let result=(negative?"-":"")+intPart;
+
+if(parts.length>1)result+=","+parts[1];
+
+return result
+}
+
+function updateDisplay(){
+
+display.textContent=formatNumber(current);
+
+if(current==="Error"){
+display.classList.add("error");
+calculadora.classList.add("error-mode")
+}else{
+display.classList.remove("error");
+calculadora.classList.remove("error-mode")
+}
+
+if(operator&&previous!==null){
+exprEl.textContent=formatNumber(previous)+" "+opSymbol(operator)
+}else{
+exprEl.textContent="\u00A0"
+}
+}
+
+function calculate(a,b,op){
+
+a=parseFloat(a);
+b=parseFloat(b);
+
+let r;
+
+switch(op){
+
+case "+":r=a+b;break;
+case "-":r=a-b;break;
+case "*":r=a*b;break;
+
+case "/":
+if(b===0)return"Error";
+r=a/b;
+break
+}
+
+return Math.round(r*1e10)/1e10
+}
+
+/* GUARDAR HISTORIAL */
+
+function saveHistory(expression,result){
+
+if(result==="Error")return;
+
+const now=new Date();
+
+const item={
+expression:expression,
+result:result,
+date:now.toLocaleDateString("es-CO",{
+day:"2-digit",
+month:"2-digit",
+year:"numeric"
+}),
+time:now.toLocaleTimeString("es-CO",{
+hour:"numeric",
+minute:"2-digit",
+hour12:true
+})
+};
+
+history.unshift(item);
+
+localStorage.setItem(
+"calcHistory",
+JSON.stringify(history)
+)
+}
+
+/* MOSTRAR HISTORIAL */
+
+function showHistory(){
+
+const list=document.getElementById("historyList");
+
+list.innerHTML="";
+
+if(history.length===0){
+
+list.innerHTML=
+'<div class="vacio">No hay cálculos guardados.</div>';
+
+}else{
+
+history.forEach(item=>{
+
+const div=document.createElement("div");
+
+div.className="historial-item";
+
+div.innerHTML=`
+<div class="historial-cuenta">
+${item.expression}
+</div>
+<div class="historial-resultado">
+= ${formatNumber(String(item.result))}
+</div>
+<div class="historial-fecha">
+${item.date} • ${item.time}
+</div>
+`;
+
+list.appendChild(div);
+
+})
+}
+
+document.getElementById("historyPanel").style.display="block"
+}
+
+/* ABRIR HISTORIAL */
+
+document.getElementById("historyBtn")
+.addEventListener("click",showHistory);
+
+/* CERRAR HISTORIAL */
+
+document.getElementById("closeHistory")
+.addEventListener("click",()=>{
+document.getElementById("historyPanel").style.display="none"
+});
+
+/* BORRAR HISTORIAL */
+
+document.getElementById("clearHistory")
+.addEventListener("click",()=>{
+
+if(history.length===0)return;
+
+if(confirm("¿Borrar todo el historial?")){
+
+history=[];
+
+localStorage.removeItem("calcHistory");
+
+showHistory();
+}
+});
+
+/* BOTONES */
+
+document.querySelectorAll("button[data-key]")
+.forEach(btn=>{
+
+btn.addEventListener("click",()=>{
+
+const key=btn.getAttribute("data-key");
+
+if(key==="C"){
+
+current="0";
+previous=null;
+operator=null;
+justEvaluated=false;
+
+}
+
+else if(key==="back"){
+
+if(current==="Error"){
+current="0"
+}else{
+current=current.length>1
+?current.slice(0,-1)
+:"0"
+}
+
+}
+
+else if(key==="."){
+
+if(current==="Error"){
+current="0."
+}
+else if(!current.includes(".")){
+current+="."
+}
+
+}
+
+else if(["+","-","*","/"].includes(key)){
+
+if(current==="Error")return;
+
+if(operator&&previous!==null&&!justEvaluated){
+
+current=String(
+calculate(previous,current,operator)
+);
+
+}
+
+previous=current;
+operator=key;
+current="0";
+justEvaluated=false;
+
+}
+
+else if(key==="="){
+
+if(operator&&previous!==null){
+
+const oldPrevious=previous;
+const oldOperator=operator;
+const oldCurrent=current;
+
+const result=calculate(
+oldPrevious,
+oldCurrent,
+oldOperator
+);
+
+const expression=
+`${formatNumber(String(oldPrevious))} ${opSymbol(oldOperator)} ${formatNumber(String(oldCurrent))}`;
+
+if(result!=="Error"){
+saveHistory(expression,result)
+}
+
+current=String(result);
+operator=null;
+previous=null;
+justEvaluated=true;
+
+}
+
+}
+
+else{
+
+if(current==="Error"){
+
+current=key;
+justEvaluated=false;
+
+}
+
+else if(justEvaluated){
+
+current=key;
+justEvaluated=false;
+
+}
+
+else{
+
+current=current==="0"
+?key
+:current+key;
+
+}
+
+}
+
+updateDisplay();
+
+});
+
+});
+
+updateDisplay();
+
+</script>
+
+</body>
+</html>
